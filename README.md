@@ -4,7 +4,7 @@
 introduces a simple pipeline to train/test your methods, and builds a benchmark to comprehensively evaluate the performance of existing methods.
 Our BasicIRSTD can help researchers to get access to infrared small target detction quickly, and facilitates the development of novel methods. Welcome to contribute your own methods to the benchmark.**
 
-**Note: This repository will be updated on a regular basis. Please stay tuned!**
+**Note: This repository is based on "[BasicIRSTD](https://github.com/XinyiYing/BasicIRSTD)" and will be updated on a regular basis.**
 
 <br>
 
