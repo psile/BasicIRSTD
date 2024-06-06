@@ -6,7 +6,7 @@ from  torchvision.models.resnet import BasicBlock
 from .fusion import AsymBiChaFuse
 import torch.nn.functional as F
 # from model.utils import init_weights, count_param
-import pdb
+
 class ASKCResUNet(nn.Module):
     def __init__(self, in_channels=1, layers=[3,3,3], channels=[8,16,32,64], fuse_mode='AsymBi', tiny=False, classes=1,
                  norm_layer=BatchNorm2d,groups=1, norm_kwargs=None, **kwargs):
@@ -112,7 +112,7 @@ class ASKCResUNet(nn.Module):
         deconvc2 = self.deconv2(c3)        # (4,32, 60, 60)
         fusec2 = self.fuse2(deconvc2, c2)  # (4,32, 60, 60)
         upc2 = self.uplayer2(fusec2)       # (4,32, 60, 60)
-        #pdb.set_trace()
+
         deconvc1 = self.deconv1(upc2)        # (4,16,120,120)
         fusec1 = self.fuse1(deconvc1, c1)    # (4,16,120,120)
         upc1 = self.uplayer1(fusec1)         # (4,16,120,120)

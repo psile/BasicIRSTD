@@ -1,4 +1,3 @@
-=======
 # BasicIRSTD
 
 **BasicIRSTD is a PyTorch-based open-source and easy-to-use toolbox for infrared small target detction (IRSTD). This toolbox 
@@ -23,6 +22,13 @@ Our BasicIRSTD can help researchers to get access to infrared small target detct
   **Code: We fix bugs to ensure the stability of training results.** 
   <br style="line-height:2em">
   **Results: We reprodude all models and update the results in table.**
+* **April 19, 2024: Update README.md.**
+
+  **New section "[Build](https://github.com/XinyiYing/BasicIRSTD?tab=readme-ov-file#build)": We add instructions for DCNv2 compiling of ISNet.** <br>
+  **New section "[Train on your own models](https://github.com/XinyiYing/BasicIRSTD?tab=readme-ov-file#train-on-your-own-models)": We add instructions for self-defined model usage.**
+* **May 11, 2024: Update README.md.**
+  
+  **Updated section "[Recources](Recources)": Update the link to the pre-trained models and result files.** <br>
 <br><br>
 
 ## Requirements
@@ -71,12 +77,19 @@ Please first download our datasets via [Baidu Drive](https://pan.baidu.com/s/1df
   │    │    │    ├── test_NUDT-SIRST.txt
   │    ├── ...  
   ```
-<br>
+<be>
 
-## Commands for Training
+## Build
+***Compile DCN for ISNet***: <br>
+1. Cd to ```model/ISNet/DCNv2```.
+2. run ```bash make.sh```. The scripts will build DCNv2 automatically and create some folders.
+3. To skip the use of DCNv2, you have to annotate ISNet in ```model/__init__.py```.
+
+## Commands
+### Commands for training
 * **Run **`train.py`** to perform network training. Example for training [model_name] on [dataset_name] datasets:**
   ```
-  $ python train.py --model_name [ACM, ALCNet] --dataset_name [NUAA-SIRST, NUDT-SIRST] --batch_size 16
+  $ python train.py --model_names ACM ALCNet --dataset_names NUAA-SIRST
   ```
 * **Checkpoints and Logs will be saved to **`./log/`**, and the **`./log/`** has the following structure:**
   ```
@@ -85,16 +98,37 @@ Please first download our datasets via [Baidu Drive](https://pan.baidu.com/s/1df
   │    │    ├── [model_name]_eopch400.pth.tar
   ```
 
-<br>
+<be>
 
-## Commands for Test
-* **Run **`test.py`** to perform network inference. Example for test [model_name] on [dataset_name] datasets:**
+### Train on your own models
+* **Create a folder in ```./model```, and put your own model in this folder.**
   ```
-  $ python test.py --model_name [ACM, ALCNet] --dataset_name [NUAA-SIRST, NUDT-SIRST] 
+  ├──./model/
+  │    ├── xxxNet
+  │    │    ├── model.py
+  ```
+* **Add the model in ```model/__init__.py```..**
+  ```
+  from model.ACM.model_ACM import ASKCResUNet as ACM
+  ...
+  from model.xxxNet.model import net as xxxNet
+  ```
+* **Add the model in ```net.py```..**
+  ```
+  if model_name == 'DNANet':
+     self.model = DNANet(mode='train')
+  ...
+  elif model_name == 'xxxNet':
+     self.model = xxxNet()
+  ...
+### Commands for test
+* **Run **`test.py`** to perform network inference and evaluation. Example for test [model_name] on [dataset_name] datasets:**
+  ```
+  $ python test.py --model_names ACM ALCNet --dataset_names NUAA-SIRST
   ```
   
 * **The PA/mIoU and PD/FA values of each dataset will be saved to** **`./test_[current time].txt`**<br>
-* **Network preditions will be saved to** **`./results/`** **that has the following structure**:
+* **Network predictions will be saved to** **`./results/`** **that has the following structure**:
   ```
   ├──./results/
   │    ├── [dataset_name]
@@ -104,9 +138,23 @@ Please first download our datasets via [Baidu Drive](https://pan.baidu.com/s/1df
   │    │   │    ├── ...
   │    │   │    ├── XDU20.png
   ```
-<br>
-
-## Commands for Evaluate on your own results
+### Commands for inference only with images
+* **Run **`inference.py`** to inference only with images. Examples:**
+  ```
+  $ python inference.py --model_names ACM --dataset_names NUAA-SIRST
+  ```
+* **Network predictions will be saved to** **`./results/`** **that has the following structure**:
+  ```
+  ├──./results/
+  │    ├── [dataset_name]
+  │    │   ├── [model_name]
+  │    │   │    ├── XDU0.png
+  │    │   │    ├── XDU1.png
+  │    │   │    ├── ...
+  │    │   │    ├── XDU20.png
+  ```
+  
+### Commands for evaluate on your own results
 * **Please first put your results on** **`./results/`** **that has the following structure:**
   ```
   ├──./results/
@@ -117,18 +165,20 @@ Please first download our datasets via [Baidu Drive](https://pan.baidu.com/s/1df
   │    │   │    ├── ...
   │    │   │    ├── XDU20.png
   ```
-* **Run **`evaluate.py`** for direct eevaluation. Example for evaluate [method_name] on [dataset_name] datasets:**
+* **Run **`evaluate.py`** for direct eevaluation. Example for evaluate [model_name] on [dataset_name] datasets:**
   ```
-  $ python evaluate.py --method_name [ACM, ALCNet] --dataset_name [NUAA-SIRST, NUDT-SIRST] 
+  $ python evaluate.py --model_names ACM --dataset_names NUAA-SIRST
   ```
 * **The PA/mIoU and PD/FA values of each dataset will be saved to** **`./eval_[current time].txt`**<br><br>
 
-## Commands for parameters/FLOPs calculation
+
+### Commands for parameters/FLOPs calculation
 * **Run **`cal_params.py`** for parameters and FLOPs calculation. Examples:**
   ```
-  $ python cal_params.py --method_name [ACM, ALCNet]
+  $ python cal_params.py --model_names ACM ALCNet
   ```
 * **The parameters and FLOPs of each method will be saved to** **`./params_[current time].txt`**<br><br>
+<be>
 
 ## Benchmark
 
@@ -1518,6 +1568,12 @@ Please first download our datasets via [Baidu Drive](https://pan.baidu.com/s/1df
   </td>
  </tr>
 </tbody></table>
+
+## Recources
+* **We provide the result files generated by the aforementioned methods, and researchers can download the results via [Baidu Drive](https://pan.baidu.com/s/1wXxlqp9R6G5aeBCy2ftl-A?pwd=1113) (key:1113) and [One Drive](https://1drv.ms/f/s!AoFCxCGMfhW6qX3-2B54zKzPGI5b?e=rQoxAs).**
+* **The pre-trained models of the aforementioned methods can be downlaod via [Baidu Drive](https://pan.baidu.com/s/1mhHz0A-6H38kBBJf9hRY6Q?pwd=1113) (key:1113) and [One Drive](https://1drv.ms/f/s!AoFCxCGMfhW6qX4lS1I9V_B9JCgU?e=y3laRj).**
+<br><br>
+
 ## Acknowledgement
 **We would like to thank [Boyang Li](https://github.com/YingqianWang), [Ruojing Li](https://github.com/TinaLRJ), [Tianhao Wu](https://github.com/YingqianWang) and [Ting Liu](https://github.com/LiuTing20a) for the helpful discussions and insightful suggestions regarding this repository.**
 <br><br>
@@ -1526,4 +1582,3 @@ Please first download our datasets via [Baidu Drive](https://pan.baidu.com/s/1df
 **Welcome to raise issues or email to [yingxinyi18@nudt.edu.cn](yingxinyi18@nudt.edu.cn) for any question regarding our BasicIRSTD.**
 
 
->>>>>>> 1db2ace (Initial commit message)

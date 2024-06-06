@@ -6,17 +6,16 @@ import torch.nn.functional as F
 from utils import *
 import os
 from loss import *
-# from model import ACM
+from model import *
 from skimage.feature.tests.test_orb import img
-from model.ACM.model_ACM import ASKCResUNet as ACM
+
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
-from model.SA_nets.SANet import SANet
-from model.UCF.UCF import UCFNet
+
 class Net(nn.Module):
     def __init__(self, model_name, mode):
         super(Net, self).__init__()
         self.model_name = model_name
-        #pdb.set_trace()
+        
         self.cal_loss = SoftIoULoss()
         if model_name == 'DNANet':
             if mode == 'train':
@@ -30,11 +29,6 @@ class Net(nn.Module):
                 self.model = DNAnet_BY(mode='test')  
         elif model_name == 'ACM':
             self.model = ACM()
-        elif model_name=='UCF':
-            self.model=UCFNet(theta_r=0, theta_0=0.7, theta_1=0, theta_2=0.7, n_blocks=7)
-        elif model_name =='SANet':
-            self.model=SANet(0.33,0.5)
-            
         elif model_name == 'ALCNet':
             self.model = ALCNet()
         elif model_name == 'ISNet':
@@ -56,6 +50,8 @@ class Net(nn.Module):
             self.model = ISTDU_Net()
         elif model_name == 'RDIAN':
             self.model = RDIAN()
+        elif model_name == 'ResUNet':
+            self.model = ResUNet()
         
     def forward(self, img):
         return self.model(img)

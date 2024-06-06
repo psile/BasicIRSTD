@@ -123,10 +123,10 @@ def get_img_norm_cfg(dataset_name, dataset_dir):
             mean_list.append(img.mean())
             std_list.append(img.std())
         img_norm_cfg = dict(mean=float(np.array(mean_list).mean()), std=float(np.array(std_list).mean()))
+        print(dataset_name + '\t' + str(img_norm_cfg)) 
     return img_norm_cfg
-import pdb
+
 def get_optimizer(net, optimizer_name, scheduler_name, optimizer_settings, scheduler_settings):
-    #pdb.set_trace()
     if optimizer_name == 'Adam':
         optimizer = torch.optim.Adam(net.parameters(), lr=optimizer_settings['lr'])
     elif optimizer_name == 'Adagrad':
