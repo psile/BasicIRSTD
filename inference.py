@@ -53,6 +53,19 @@ def test():
         for idx_iter, (img, size, img_dir) in tqdm(enumerate(test_loader)):
             img = Variable(img).cuda()
             pred = net.forward(img)
+            tta=True
+            if tta:
+                #x,y,xy flips as TTA
+                flips = [[-1],[-2],[-2,-1]]
+                for f in flips:
+                    img = torch.flip(img,f)
+                    
+                    y_preds = net.forward(img)
+                    y_preds = torch.flip(y_preds,f)
+                    #y_pred = y_pred[:,:,:size[0],:size[1]]
+                    pred+=y_preds
+            pred=pred/(1+len(flips))
+            #pred=pred[:,:,:size[0],:size[1]]
             pred = pred[:,:,:size[0],:size[1]]        
             ### save img
             if opt.save_img == True:
