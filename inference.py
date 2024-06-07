@@ -11,17 +11,17 @@ from tqdm import tqdm
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 parser = argparse.ArgumentParser(description="PyTorch BasicIRSTD Inference without mask")
-parser.add_argument("--model_names", default=['ACM', 'ALCNet','DNANet', 'ISNet', 'RDIAN', 'ISTDU-Net'], nargs='+',  
+parser.add_argument("--model_names", default=['ACM'], nargs='+',  
                     help="model_name: 'ACM', 'ALCNet', 'DNANet', 'ISNet', 'UIUNet', 'RDIAN', 'ISTDU-Net', 'U-Net', 'RISTDnet'")
-parser.add_argument("--pth_dirs", default=None, nargs='+',  help="checkpoint dir, default=None or ['NUDT-SIRST/ACM_400.pth.tar','NUAA-SIRST/ACM_400.pth.tar']")
+parser.add_argument("--pth_dirs", default=['WideIRSTD/ACM_180.pth.tar'], nargs='+',  help="checkpoint dir, default=None or ['NUDT-SIRST/ACM_400.pth.tar','NUAA-SIRST/ACM_400.pth.tar']")
 parser.add_argument("--dataset_dir", default='./datasets', type=str, help="train_dataset_dir")
-parser.add_argument("--dataset_names", default=['NUAA-SIRST', 'NUDT-SIRST', 'IRSTD-1K'], nargs='+', 
+parser.add_argument("--dataset_names", default=['WideIRSTD'], nargs='+', 
                     help="dataset_name: 'NUAA-SIRST', 'NUDT-SIRST', 'IRSTD-1K', 'SIRST3', 'NUDT-SIRST-Sea'")
 parser.add_argument("--img_norm_cfg", default=None, type=dict,
                     help="specific a img_norm_cfg, default=None (using img_norm_cfg values of each dataset)")
-parser.add_argument("--img_norm_cfg_mean", default=None, type=float,
+parser.add_argument("--img_norm_cfg_mean", default=107.848, type=float,
                     help="specific a mean value img_norm_cfg, default=None (using img_norm_cfg values of each dataset)")
-parser.add_argument("--img_norm_cfg_std", default=None, type=float,
+parser.add_argument("--img_norm_cfg_std", default=30.905, type=float,
                     help="specific a std value img_norm_cfg, default=None (using img_norm_cfg values of each dataset)")
 
 parser.add_argument("--save_img", default=True, type=bool, help="save image of or not")
@@ -53,6 +53,7 @@ def test():
         for idx_iter, (img, size, img_dir) in tqdm(enumerate(test_loader)):
             img = Variable(img).cuda()
             pred = net.forward(img)
+
             tta=True
             if tta:
                 #x,y,xy flips as TTA
@@ -65,8 +66,8 @@ def test():
                     #y_pred = y_pred[:,:,:size[0],:size[1]]
                     pred+=y_preds
             pred=pred/(1+len(flips))
-            #pred=pred[:,:,:size[0],:size[1]]
-            pred = pred[:,:,:size[0],:size[1]]        
+            pred = pred[:,:,:size[0],:size[1]]  
+            
             ### save img
             if opt.save_img == True:
                 img_save = transforms.ToPILImage()(((pred[0,0,:,:]>opt.threshold).float()).cpu())
@@ -75,7 +76,7 @@ def test():
                 img_save.save(opt.save_img_dir + opt.test_dataset_name + '/' + opt.model_name + '/' + img_dir[0] + '.png')  
     
     print('Inference Done!')
-   
+ 
 if __name__ == '__main__':
     opt.f = open(opt.save_log + 'test_' + (time.ctime()).replace(' ', '_').replace(':', '_') + '.txt', 'w')
     if opt.pth_dirs == None:
@@ -101,7 +102,7 @@ if __name__ == '__main__':
                     if dataset_name in pth_dir and model_name in pth_dir:
                         opt.test_dataset_name = dataset_name
                         opt.model_name = model_name
-                        opt.train_dataset_name = pth_dir.split('/')[0]
+                        opt.train_dataset_name =dataset_name# pth_dir.split('/')[0]
                         print(pth_dir)
                         opt.f.write(pth_dir)
                         print(opt.test_dataset_name)
