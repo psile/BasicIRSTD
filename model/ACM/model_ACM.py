@@ -72,12 +72,12 @@ class ASKCResUNet(nn.Module):
         self.fuse1 = self._fuse_layer(fuse_mode, channels=channels[1])
 
         self.head = _FCNHead(in_channels=channels[1], channels=classes, momentum=self.momentum)
-        self.Rep1=RepBlock(16,16)
-        self.Rep2=RepBlock(16,16)
-        self.Rep3=RepBlock(32,32)
-        self.Rep4=RepBlock(64,64)
-        self.Rep5=RepBlock(32,32)
-        self.Rep6=RepBlock(16,16)
+        # self.Rep1=RepBlock(16,16)
+        # self.Rep2=RepBlock(16,16)
+        # self.Rep3=RepBlock(32,32)
+        # self.Rep4=RepBlock(64,64)
+        # self.Rep5=RepBlock(32,32)
+        # self.Rep6=RepBlock(16,16)
 
 
 
@@ -112,23 +112,23 @@ class ASKCResUNet(nn.Module):
         _, _, hei, wid = x.shape
 
         x = self.stem(x)      # (4,16,120,120)
-        x=self.Rep1(x)
+        #x=self.Rep1(x)
         c1 = self.layer1(x)   # (4,16,120,120)
-        c1=self.Rep2(c1)
+        #c1=self.Rep2(c1)
         c2 = self.layer2(c1)  # (4,32, 60, 60)
-        c2=self.Rep3(c2)
+        #c2=self.Rep3(c2)
         c3 = self.layer3(c2)  # (4,64, 30, 30)
-        c3=self.Rep4(c3)
+        #c3=self.Rep4(c3)
         deconvc2 = self.deconv2(c3)        # (4,32, 60, 60)
         fusec2 = self.fuse2(deconvc2, c2)  # (4,32, 60, 60)
 
         upc2 = self.uplayer2(fusec2)       # (4,32, 60, 60)
-        upc2=self.Rep5(upc2)
+        #upc2=self.Rep5(upc2)
         #pdb.set_trace()
         deconvc1 = self.deconv1(upc2)        # (4,16,120,120)
         fusec1 = self.fuse1(deconvc1, c1)    # (4,16,120,120)
         upc1 = self.uplayer1(fusec1)         # (4,16,120,120)
-        upc1=self.Rep6(upc1)
+        #upc1=self.Rep6(upc1)
         pred = self.head(upc1)               # (4,1,120,120)
 
         if self.tiny:
