@@ -39,7 +39,7 @@ if opt.img_norm_cfg_mean != None and opt.img_norm_cfg_std != None:
   
 def test(): 
     test_set = InferenceSetLoader(opt.dataset_dir, opt.train_dataset_name, opt.test_dataset_name, opt.img_norm_cfg)
-    test_loader = DataLoader(dataset=test_set, num_workers=1, batch_size=1, shuffle=False)
+    test_loader = DataLoader(dataset=test_set, num_workers=1, batch_size=1, shuffle=False)#,pin_memory=True
     
     net = Net(model_name=opt.model_name, mode='test').cuda()
     try:
@@ -59,7 +59,9 @@ def test():
                 img_save = transforms.ToPILImage()(((pred[0,0,:,:]>opt.threshold).float()).cpu())
                 if not os.path.exists(opt.save_img_dir + opt.test_dataset_name + '/' + opt.model_name):
                     os.makedirs(opt.save_img_dir + opt.test_dataset_name + '/' + opt.model_name)
-                img_save.save(opt.save_img_dir + opt.test_dataset_name + '/' + opt.model_name + '/' + img_dir[0] + '.png')  
+                img_save.save(opt.save_img_dir + opt.test_dataset_name + '/' + opt.model_name + '/' + img_dir[0] + '.png') 
+            del img_save
+            torch.cuda.empty_cache() 
     
     print('Inference Done!')
    
