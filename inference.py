@@ -60,8 +60,8 @@ def test():
                 if not os.path.exists(opt.save_img_dir + opt.test_dataset_name + '/' + opt.model_name):
                     os.makedirs(opt.save_img_dir + opt.test_dataset_name + '/' + opt.model_name)
                 img_save.save(opt.save_img_dir + opt.test_dataset_name + '/' + opt.model_name + '/' + img_dir[0] + '.png') 
-            del img_save
-            torch.cuda.empty_cache() 
+            del img, pred, img_save
+            torch.cuda.empty_cache()
     
     print('Inference Done!')
    
