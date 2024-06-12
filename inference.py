@@ -62,10 +62,10 @@ def test():
 
     with torch.no_grad():
         for idx_iter, (img, size, img_dir) in tqdm(enumerate(test_loader)):
-            img, h,w = downsample_if_needed(img)
+            # img, h,w = downsample_if_needed(img)
             img = Variable(img).cuda()
             pred = net.forward(img)
-            pred=F.interpolate(pred, size=(h, w), mode='bilinear', align_corners=False)
+            # pred=F.interpolate(pred, size=(h, w), mode='bilinear', align_corners=False)
             pred = pred[:,:,:size[0],:size[1]]        
             ### save img
             if opt.save_img == True:
