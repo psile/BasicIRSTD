@@ -7,9 +7,87 @@ from .fusion import AsymBiChaFuse
 import torch.nn.functional as F
 # from model.utils import init_weights, count_param
 import pdb
+
+
+class AsymBiChaFuseReduce(nn.Module):
+    def __init__(self, in_high_channels, in_low_channels, out_channels=64, r=4):
+        super(AsymBiChaFuseReduce, self).__init__()
+        assert in_low_channels == out_channels
+        self.high_channels = in_high_channels
+        self.low_channels = in_low_channels
+        self.out_channels = out_channels
+        self.bottleneck_channels = int(out_channels // r)
+
+        self.feature_high = nn.Sequential(
+            nn.Conv2d(self.high_channels, self.out_channels, 1, 1, 0),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(True),
+        )##512
+
+        self.topdown = nn.Sequential(
+            nn.AdaptiveAvgPool2d((1, 1)),
+            nn.Conv2d(self.out_channels, self.bottleneck_channels, 1, 1, 0),
+            nn.BatchNorm2d(self.bottleneck_channels),
+            nn.ReLU(True),
+
+            nn.Conv2d(self.bottleneck_channels, self.out_channels, 1, 1, 0),
+            nn.BatchNorm2d(self.out_channels),
+            nn.Sigmoid(),
+        )#512
+
+        ##############add spatial attention ###Cross UtU############
+        self.bottomup = nn.Sequential(
+            nn.Conv2d(self.low_channels, self.bottleneck_channels, 1, 1, 0),
+            nn.BatchNorm2d(self.bottleneck_channels),
+            nn.ReLU(True),
+            # nn.Sigmoid(),
+
+            SpatialAttention(kernel_size=3),
+            # nn.Conv2d(self.bottleneck_channels, 2, 3, 1, 0),
+            # nn.Conv2d(2, 1, 1, 1, 0),
+            #nn.BatchNorm2d(self.out_channels),
+            nn.Sigmoid()
+        )
+
+        self.post = nn.Sequential(
+            nn.Conv2d(self.out_channels, self.out_channels, 3, 1, 1),
+            nn.BatchNorm2d(self.out_channels),
+            nn.ReLU(True),
+        )#512
+
+    def forward(self, xh, xl):
+        xh = self.feature_high(xh)
+
+        topdown_wei = self.topdown(xh)
+        bottomup_wei = self.bottomup(xl * topdown_wei)
+        xs1 = 2 * xl * topdown_wei  #1
+        out1 = self.post(xs1)
+
+        xs2 = 2 * xh * bottomup_wei    #1
+        out2 = self.post(xs2)
+        return out1,out2
+    
+class SpatialAttention(nn.Module):
+    def __init__(self, kernel_size=3):
+        super(SpatialAttention, self).__init__()
+
+        assert kernel_size in (3, 7), 'kernel size must be 3 or 7'
+        padding = 3 if kernel_size == 7 else 1
+
+        self.conv1 = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
+
+    def forward(self, x):
+        avg_out = torch.mean(x, dim=1, keepdim=True)
+        max_out, _ = torch.max(x, dim=1, keepdim=True)
+        x = torch.cat([avg_out, max_out], dim=1)
+        x = self.conv1(x)
+        return x
+
+
+
 class ASKCResUNet(nn.Module):
-    def __init__(self, in_channels=1, layers=[3,3,3], channels=[8,16,32,64], fuse_mode='AsymBi', tiny=False, classes=1,
-                 norm_layer=BatchNorm2d,groups=1, norm_kwargs=None, **kwargs):
+    def __init__(self, in_channels=1, layers=[3,3,3], channels=[8,16,32,64], fuse_mode='UIUNet', tiny=False, classes=1,
+                 norm_layer=BatchNorm2d,groups=1, norm_kwargs=None, **kwargs): #[8,16,32,64]
         super(ASKCResUNet, self).__init__()
         self.layer_num = len(layers)
         self.tiny = tiny
@@ -63,6 +141,8 @@ class ASKCResUNet(nn.Module):
                                          out_channels=channels[2], stride=1,
                                          in_channels=channels[2])
         self.fuse2 = self._fuse_layer(fuse_mode, channels=channels[2])
+        self.conv2_1=nn.Conv2d(64,32,3,1,1)
+        self.conv1_1=nn.Conv2d(32,16,3,1,1)
 
         self.deconv1 = nn.ConvTranspose2d(in_channels=channels[2] ,out_channels=channels[1], kernel_size=(4, 4),
                                           stride=2, padding=1)
@@ -102,7 +182,11 @@ class ASKCResUNet(nn.Module):
     def _fuse_layer(self, fuse_mode, channels):
 
         if fuse_mode == 'AsymBi':
+        #   pdb.set_trace()
           fuse_layer = AsymBiChaFuse(channels=channels)
+        elif fuse_mode=='UIUNet':
+            # pdb.set_trace()
+            fuse_layer=AsymBiChaFuseReduce(channels,channels,out_channels=channels)
         else:
             raise ValueError('Unknown fuse_mode')
         return fuse_layer
@@ -119,14 +203,19 @@ class ASKCResUNet(nn.Module):
         #c2=self.Rep3(c2)
         c3 = self.layer3(c2)  # (4,64, 30, 30)
         #c3=self.Rep4(c3)
-        deconvc2 = self.deconv2(c3)        # (4,32, 60, 60)
-        fusec2 = self.fuse2(deconvc2, c2)  # (4,32, 60, 60)
-
+        deconvc2 = self.deconv2(c3) 
+        #pdb.set_trace()       # (4,32, 60, 60)
+        out1,out2 = self.fuse2(deconvc2, c2)  # (4,32, 60, 60)
+        fusec2=torch.cat([out1,out2],1)
+        fusec2=self.conv2_1(fusec2)
         upc2 = self.uplayer2(fusec2)       # (4,32, 60, 60)
         #upc2=self.Rep5(upc2)
         #pdb.set_trace()
         deconvc1 = self.deconv1(upc2)        # (4,16,120,120)
-        fusec1 = self.fuse1(deconvc1, c1)    # (4,16,120,120)
+
+        out1,out2 = self.fuse1(deconvc1, c1)    # (4,16,120,120)
+        fusec1=torch.cat([out1,out2],1)
+        fusec1=self.conv1_1(fusec1)
         upc1 = self.uplayer1(fusec1)         # (4,16,120,120)
         #upc1=self.Rep6(upc1)
         pred = self.head(upc1)               # (4,1,120,120)
@@ -239,7 +328,7 @@ if __name__ == '__main__':
     layers = [3] * 3
     channels = [x * 1 for x in [8, 16, 32, 64]]
     in_channels = 3
-    model= ASKCResUNet(in_channels, layers=layers, channels=channels, fuse_mode='AsymBi',tiny=False, classes=1)
+    model= ASKCResUNet(in_channels, layers=layers, channels=channels, fuse_mode='UIUNet',tiny=False, classes=1)
 
     model=model.cuda()
     DATA = torch.randn(8,3,480,480).to(DEVICE)
