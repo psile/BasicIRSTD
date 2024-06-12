@@ -37,7 +37,7 @@ if opt.img_norm_cfg_mean != None and opt.img_norm_cfg_std != None:
   opt.img_norm_cfg = dict()
   opt.img_norm_cfg['mean'] = opt.img_norm_cfg_mean
   opt.img_norm_cfg['std'] = opt.img_norm_cfg_std
-def downsample_if_needed(img, size_limit=2048):
+def downsample_if_needed(img, size_limit=1024):
     """如果图像尺寸超过限制，进行下采样"""
     _,_,h, w = img.shape
     if max(h, w) > size_limit:
@@ -46,9 +46,9 @@ def downsample_if_needed(img, size_limit=2048):
         new_w = int(w * scale_factor)
         img=F.interpolate(img, size=(new_h, new_w), mode='bilinear', align_corners=False)
         #img = img.resize((new_w, new_h), resample=Image.BILINEAR)
-        return img, h,w,
+        return img, h,w #,True
     else:
-        return img, 1.0
+        return img, h,w  #,False
 def test(): 
     test_set = InferenceSetLoader(opt.dataset_dir, opt.train_dataset_name, opt.test_dataset_name, opt.img_norm_cfg)
     test_loader = DataLoader(dataset=test_set, num_workers=1, batch_size=1, shuffle=False)#,pin_memory=True
