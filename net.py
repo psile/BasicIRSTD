@@ -13,6 +13,7 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 from model.SA_nets.SANet import SANet
 from model.UCF.UCF import UCFNet
 from model.AGPCNet import get_segmentation_model
+from model.DNANet import DNANet
 class Net(nn.Module):
     def __init__(self, model_name, mode):
         super(Net, self).__init__()
