@@ -43,10 +43,9 @@ def downsample_if_needed(img, size_limit=128):
         scale_factor = size_limit / max(h, w)
         new_h = int(h * scale_factor)
         new_w = int(w * scale_factor)
-        if new_h % 2 != 0:
-            new_h += 1
-        if new_w % 2 != 0:
-            new_w += 1
+        # 调整尺寸为8的倍数
+        new_h = ((new_h + 7) // 8) * 8  # 向上取最接近的8的倍数
+        new_w = ((new_w + 7) // 8) * 8
         img=F.interpolate(img, size=(new_h, new_w), mode='bilinear', align_corners=False)
         #img = img.resize((new_w, new_h), resample=Image.BILINEAR)
         return img, h,w #,True
