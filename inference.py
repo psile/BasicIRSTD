@@ -36,7 +36,7 @@ if opt.img_norm_cfg_mean != None and opt.img_norm_cfg_std != None:
   opt.img_norm_cfg = dict()
   opt.img_norm_cfg['mean'] = opt.img_norm_cfg_mean
   opt.img_norm_cfg['std'] = opt.img_norm_cfg_std
-def downsample_if_needed(img, size_limit=1024):
+def downsample_if_needed(img, size_limit=512):
     """如果图像尺寸超过限制，进行下采样"""
     _,_,h, w = img.shape
     if max(h, w) > size_limit:
