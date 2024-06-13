@@ -28,7 +28,7 @@ parser.add_argument("--save_img", default=True, type=bool, help="save image of o
 parser.add_argument("--save_img_dir", type=str, default='./results/', help="path of saved image")
 parser.add_argument("--save_log", type=str, default='./log/', help="path of saved .pth")
 parser.add_argument("--threshold", type=float, default=0.5)
-
+import pdb
 global opt
 opt = parser.parse_args()
 ## Set img_norm_cfg
@@ -36,7 +36,7 @@ if opt.img_norm_cfg_mean != None and opt.img_norm_cfg_std != None:
   opt.img_norm_cfg = dict()
   opt.img_norm_cfg['mean'] = opt.img_norm_cfg_mean
   opt.img_norm_cfg['std'] = opt.img_norm_cfg_std
-def downsample_if_needed(img, size_limit=256):
+def downsample_if_needed(img, size_limit=128):
     """如果图像尺寸超过限制，进行下采样"""
     _,_,h, w = img.shape
     if max(h, w) > size_limit:
@@ -62,7 +62,9 @@ def test():
 
     with torch.no_grad():
         for idx_iter, (img, size, img_dir) in tqdm(enumerate(test_loader)):
+            #pdb.set_trace()
             img, h,w = downsample_if_needed(img)
+            
             img = Variable(img).cuda()
             pred = net.forward(img)
             pred=F.interpolate(pred, size=(h, w), mode='bilinear', align_corners=False)
