@@ -66,7 +66,7 @@ def test():
           
             # 对图像进行填充
             # img = F.pad(img, (0, 0, pad_width, pad_height), mode='constant', constant_values=0)#padding_mode
-            img=F.pad(img, (0, 0, pad_width, pad_height), value=0)
+            img=F.pad(img, (0, 0, pad_width, pad_height),mode='constant',value=0)
             _, _, padded_height, padded_width = img.size()
 
             num_blocks_height = (padded_height + max_block_size[0] - 1) // max_block_size[0]
