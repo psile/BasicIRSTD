@@ -35,7 +35,20 @@ if opt.img_norm_cfg_mean != None and opt.img_norm_cfg_std != None:
   opt.img_norm_cfg = dict()
   opt.img_norm_cfg['mean'] = opt.img_norm_cfg_mean
   opt.img_norm_cfg['std'] = opt.img_norm_cfg_std
-  
+
+def downsample_if_needed(img, size_limit=128):
+    """如果图像尺寸超过限制，进行下采样"""
+    _,_,h, w = img.shape
+    if max(h, w) > size_limit:
+        scale_factor = size_limit / max(h, w)
+        new_h = int(h * scale_factor)
+        new_w = int(w * scale_factor)
+        img=F.interpolate(img, size=(new_h, new_w), mode='bilinear', align_corners=False)
+        #img = img.resize((new_w, new_h), resample=Image.BILINEAR)
+        return img, h,w #,True
+    else:
+        return img, h,w  #,False  
+import pdb
 def test(): 
     test_set = TestSetLoader(opt.dataset_dir, opt.train_dataset_name, opt.test_dataset_name, opt.img_norm_cfg)
     test_loader = DataLoader(dataset=test_set, num_workers=1, batch_size=1, shuffle=False)
@@ -52,8 +65,14 @@ def test():
     eval_PD_FA = PD_FA()
     with torch.no_grad():
         for idx_iter, (img, gt_mask, size, img_dir) in enumerate(test_loader):
+            pdb.set_trace()
+            img, h,w = downsample_if_needed(img)
+            
             img = Variable(img).cuda()
             pred = net.forward(img)
+            pred=F.interpolate(pred, size=(h, w), mode='bilinear', align_corners=False)
+            # img = Variable(img).cuda()
+            # pred = net.forward(img)
             pred = pred[:,:,:size[0],:size[1]]
             gt_mask = gt_mask[:,:,:size[0],:size[1]]
 

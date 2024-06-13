@@ -62,7 +62,7 @@ def test():
 
     with torch.no_grad():
         for idx_iter, (img, size, img_dir) in tqdm(enumerate(test_loader)):
-            #pdb.set_trace()
+            pdb.set_trace()
             img, h,w = downsample_if_needed(img)
             
             img = Variable(img).cuda()
