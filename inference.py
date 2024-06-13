@@ -43,6 +43,10 @@ def downsample_if_needed(img, size_limit=128):
         scale_factor = size_limit / max(h, w)
         new_h = int(h * scale_factor)
         new_w = int(w * scale_factor)
+        if new_h % 2 != 0:
+            new_h += 1
+        if new_w % 2 != 0:
+            new_w += 1
         img=F.interpolate(img, size=(new_h, new_w), mode='bilinear', align_corners=False)
         #img = img.resize((new_w, new_h), resample=Image.BILINEAR)
         return img, h,w #,True
