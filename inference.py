@@ -36,7 +36,7 @@ if opt.img_norm_cfg_mean != None and opt.img_norm_cfg_std != None:
   opt.img_norm_cfg = dict()
   opt.img_norm_cfg['mean'] = opt.img_norm_cfg_mean
   opt.img_norm_cfg['std'] = opt.img_norm_cfg_std
-def downsample_if_needed(img, size_limit=512):
+def downsample_if_needed(img, size_limit=1024):
     """如果图像尺寸超过限制，进行下采样"""
     _,_,h, w = img.shape
     if max(h, w) > size_limit:
@@ -62,10 +62,10 @@ def test():
 
     with torch.no_grad():
         for idx_iter, (img, size, img_dir) in tqdm(enumerate(test_loader)):
-            # img, h,w = downsample_if_needed(img)
+            img, h,w = downsample_if_needed(img)
             img = Variable(img).cuda()
             pred = net.forward(img)
-            # pred=F.interpolate(pred, size=(h, w), mode='bilinear', align_corners=False)
+            pred=F.interpolate(pred, size=(h, w), mode='bilinear', align_corners=False)
             pred = pred[:,:,:size[0],:size[1]]        
             ### save img
             if opt.save_img == True:
