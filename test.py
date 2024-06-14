@@ -8,8 +8,8 @@ from metrics import *
 import os
 import time
 from tqdm import tqdm
-from pydensecrf import densecrf
-from pydensecrf.utils import unary_from_labels, create_pairwise_bilateral, create_pairwise_gaussian
+# from pydensecrf import densecrf
+# from pydensecrf.utils import unary_from_labels, create_pairwise_bilateral, create_pairwise_gaussian
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 parser = argparse.ArgumentParser(description="PyTorch BasicIRSTD test")
 parser.add_argument("--model_names", default=['ACM', 'ALCNet','DNANet', 'ISNet', 'RDIAN', 'ISTDU-Net'], nargs='+',  
@@ -38,33 +38,33 @@ if opt.img_norm_cfg_mean != None and opt.img_norm_cfg_std != None:
   opt.img_norm_cfg['mean'] = opt.img_norm_cfg_mean
   opt.img_norm_cfg['std'] = opt.img_norm_cfg_std
 
-def crf_refine(img, pred_mask, iter_num=5):
-    """
-    使用CRF后处理来优化预测的分割掩码。
-    :param img: 原始图像，形状为(H, W, C)，其中C为通道数。
-    :param pred_mask: 预测的分割掩码，形状为(H, W)，值域为{0, 1}。
-    :param iter_num: CRF迭代次数。
-    :return: 经过CRF优化后的分割掩码。
-    """
-    h, w = pred_mask.shape
-    d = densecrf.DenseCRF2D(w, h, 2)  # 2表示两类：背景和前景
-    #pdb.set_trace()
-    U = unary_from_labels(pred_mask, 2, gt_prob=0.7, zero_unsure=False)
-    d.setUnaryEnergy(U)
+# def crf_refine(img, pred_mask, iter_num=5):
+#     """
+#     使用CRF后处理来优化预测的分割掩码。
+#     :param img: 原始图像，形状为(H, W, C)，其中C为通道数。
+#     :param pred_mask: 预测的分割掩码，形状为(H, W)，值域为{0, 1}。
+#     :param iter_num: CRF迭代次数。
+#     :return: 经过CRF优化后的分割掩码。
+#     """
+#     h, w = pred_mask.shape
+#     d = densecrf.DenseCRF2D(w, h, 2)  # 2表示两类：背景和前景
+#     #pdb.set_trace()
+#     U = unary_from_labels(pred_mask, 2, gt_prob=0.7, zero_unsure=False)
+#     d.setUnaryEnergy(U)
     
-    # 添加空间特征
-    feats = create_pairwise_gaussian(sdims=(3, 3), shape=img.shape[:2])
-    d.addPairwiseEnergy(feats, compat=3, kernel=densecrf.DIAG_KERNEL,
-                        normalization=densecrf.NORMALIZE_SYMMETRIC)
+#     # 添加空间特征
+#     feats = create_pairwise_gaussian(sdims=(3, 3), shape=img.shape[:2])
+#     d.addPairwiseEnergy(feats, compat=3, kernel=densecrf.DIAG_KERNEL,
+#                         normalization=densecrf.NORMALIZE_SYMMETRIC)
     
-    # 添加颜色特征
-    #pdb.set_trace()
-    feats = create_pairwise_bilateral(sdims=(80, 80), schan=(20, 20, 20),img=img, chdim=1)
-    d.addPairwiseEnergy(feats, compat=10, kernel=densecrf.DIAG_KERNEL,normalization=densecrf.NORMALIZE_SYMMETRIC)
+#     # 添加颜色特征
+#     #pdb.set_trace()
+#     feats = create_pairwise_bilateral(sdims=(80, 80), schan=(20, 20, 20),img=img, chdim=1)
+#     d.addPairwiseEnergy(feats, compat=10, kernel=densecrf.DIAG_KERNEL,normalization=densecrf.NORMALIZE_SYMMETRIC)
     
-    Q = d.inference(iter_num)
-    refined_mask = np.argmax(Q, axis=0).reshape((h, w)).astype(np.uint8)
-    return refined_mask
+#     Q = d.inference(iter_num)
+#     refined_mask = np.argmax(Q, axis=0).reshape((h, w)).astype(np.uint8)
+#     return refined_mask
 def downsample_if_needed(img, size_limit=512):
     """如果图像尺寸超过限制，进行下采样"""
     _,_,h, w = img.shape
@@ -87,13 +87,13 @@ def test():
     # test_set = InferenceSetLoader(opt.dataset_dir, opt.train_dataset_name, opt.test_dataset_name, opt.img_norm_cfg)
     # test_loader = DataLoader(dataset=test_set, num_workers=1, batch_size=1, shuffle=False)
     
-    net = Net(model_name=opt.model_name, mode='test').cuda()
-    try:
-        net.load_state_dict(torch.load(opt.pth_dir)['state_dict'])
-    except:
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        net.load_state_dict(torch.load(opt.pth_dir, map_location=device)['state_dict'])
-    net.eval()
+    # net = Net(model_name=opt.model_name, mode='test').cuda()
+    # try:
+    #     net.load_state_dict(torch.load(opt.pth_dir)['state_dict'])
+    # except:
+    #     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    #     net.load_state_dict(torch.load(opt.pth_dir, map_location=device)['state_dict'])
+    # net.eval()
     
     eval_mIoU = mIoU() 
     eval_PD_FA = PD_FA()
@@ -101,53 +101,81 @@ def test():
     max_block_size = (512, 512)
     with torch.no_grad():
         for idx_iter, (img, gt_mask, size, img_dir) in enumerate(test_loader):
-            img = Variable(img).cuda()
-            _, _, height, width = img.size()
-
-            # 计算需要填充的尺寸
-            pad_height = (max_block_size[0] - height % max_block_size[0]) % max_block_size[0] # 512 - 832 % 512 = 192
-            pad_width = (max_block_size[1] - width % max_block_size[1]) % max_block_size[1] # 512 - 1088 % 512 = 448
-          
-            # 对图像进行填充
-            # img = F.pad(img, (0, 0, pad_width, pad_height), mode='constant', constant_values=0)#padding_mode
-            img=F.pad(img, (0, pad_width,0, pad_height),mode='constant',value=0)
-            _, _, padded_height, padded_width = img.size()
-
-            num_blocks_height = (padded_height + max_block_size[0] - 1) // max_block_size[0]
-            num_blocks_width = (padded_width + max_block_size[1] - 1) // max_block_size[1]
-
-            # 动态分块推理
-            output = torch.zeros_like(img)
-            for i in range(num_blocks_height):
-                for j in range(num_blocks_width):
-                    block_y = i * max_block_size[0]
-                    block_x = j * max_block_size[1]
-                    block_height = min(max_block_size[0], padded_height - block_y)
-                    block_width = min(max_block_size[1], padded_width - block_x)
-
-                    # 确保块的尺寸大于0
-                    if block_height <= 0 or block_width <= 0:
-                        print(f'Skipping block at (i={i}, j={j}) due to zero or negative size: height={block_height}, width={block_width}')
-                        continue
-
-                    block = img[:, :, block_y:block_y + block_height, block_x:block_x + block_width]
-                    
-
+            for pth_dir in opt.pth_dirs:
+                model_name=pth_dir.split("_")[0]
+                if model_name=="AGPCNet":
+                    net = Net(model_name="AGPCNet", mode='test').cuda()
                     try:
-                        pred_block = net.forward(block)
-                    except RuntimeError as e:
-                        print(f'Error processing block at (i={i}, j={j}): {str(e)}')
-                        continue
+                        net.load_state_dict(torch.load(opt.pth_dir)['state_dict'])
+                    except:
+                        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+                        net.load_state_dict(torch.load(opt.pth_dir, map_location=device)['state_dict'])
+                    net.eval()
+                elif model_name=="DNANet":
+                    net = Net(model_name="DNANet", mode='test').cuda()
+                    try:
+                        net.load_state_dict(torch.load(opt.pth_dir)['state_dict'])
+                    except:
+                        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+                        net.load_state_dict(torch.load(opt.pth_dir, map_location=device)['state_dict'])
+                    net.eval()
 
-                    output[:, :, block_y:block_y + block_height, block_x:block_x + block_width] = pred_block
+            
+                img = Variable(img).cuda()
+                _, _, height, width = img.size()
 
-            # 去除填充部分
-            '''crf'''
-            output= crf_refine(img[0].permute(1, 2, 0).cpu().numpy(), (output[0][0]>opt.threshold).cpu().numpy().astype(np.uint8))
-            '''crf'''
-            output = output[:,:,:size[0],:size[1]]
-            pred = output  
-          
+                # 计算需要填充的尺寸
+                pad_height = (max_block_size[0] - height % max_block_size[0]) % max_block_size[0] # 512 - 832 % 512 = 192
+                pad_width = (max_block_size[1] - width % max_block_size[1]) % max_block_size[1] # 512 - 1088 % 512 = 448
+                
+                # 对图像进行填充
+                # img = F.pad(img, (0, 0, pad_width, pad_height), mode='constant', constant_values=0)#padding_mode
+                img=F.pad(img, (0, pad_width,0, pad_height),mode='constant',value=0)
+                _, _, padded_height, padded_width = img.size()
+
+                num_blocks_height = (padded_height + max_block_size[0] - 1) // max_block_size[0]
+                num_blocks_width = (padded_width + max_block_size[1] - 1) // max_block_size[1]
+
+                # 动态分块推理
+                output = torch.zeros_like(img)
+                '''集成'''
+                pred=torch.zeros_like(img)
+                '''集成'''
+                for i in range(num_blocks_height):
+                    for j in range(num_blocks_width):
+                        block_y = i * max_block_size[0]
+                        block_x = j * max_block_size[1]
+                        block_height = min(max_block_size[0], padded_height - block_y)
+                        block_width = min(max_block_size[1], padded_width - block_x)
+
+                        # 确保块的尺寸大于0
+                        if block_height <= 0 or block_width <= 0:
+                            print(f'Skipping block at (i={i}, j={j}) due to zero or negative size: height={block_height}, width={block_width}')
+                            continue
+
+                        block = img[:, :, block_y:block_y + block_height, block_x:block_x + block_width]
+                        
+
+                        try:
+                            pred_block = net.forward(block)
+                        except RuntimeError as e:
+                            print(f'Error processing block at (i={i}, j={j}): {str(e)}')
+                            continue
+
+                        output[:, :, block_y:block_y + block_height, block_x:block_x + block_width] = pred_block
+
+           
+            # '''crf'''
+            # output= crf_refine(img[0].permute(1, 2, 0).cpu().numpy(), (output[0][0]>opt.threshold).cpu().numpy().astype(np.uint8))
+            # '''crf'''
+            # 去除填充部分 
+                pred+=output
+            
+
+            # output = output[:,:,:size[0],:size[1]]
+            # pred = output
+            pred=pred[:,:,:size[0],:size[1]]
+            pred=pred/len(opt.pth_dirs)
             gt_mask = gt_mask[:,:,:size[0],:size[1]]
            
             
@@ -189,18 +217,18 @@ if __name__ == '__main__':
     else:
         for model_name in opt.model_names:
             for dataset_name in opt.dataset_names:
-                for pth_dir in opt.pth_dirs:
-                    if dataset_name in pth_dir and model_name in pth_dir:
-                        opt.test_dataset_name = dataset_name
-                        opt.model_name = model_name
-                        opt.train_dataset_name = pth_dir.split('/')[0]
-                        print(pth_dir)
-                        opt.f.write(pth_dir)
-                        print(opt.test_dataset_name)
-                        opt.f.write(opt.test_dataset_name + '\n')
-                        opt.pth_dir = opt.save_log + pth_dir
-                        test()
-                        print('\n')
-                        opt.f.write('\n')
+                #for pth_dir in opt.pth_dirs:
+                    #if dataset_name in pth_dir and model_name in pth_dir:
+                opt.test_dataset_name = dataset_name
+                opt.model_name = model_name
+                opt.train_dataset_name =dataset_name# pth_dir.split('/')[0]
+                # print(pth_dir)
+                opt.f.write(opt.pth_dirs)
+                print(opt.test_dataset_name)
+                opt.f.write(opt.test_dataset_name + '\n')
+                # opt.pth_dir = opt.save_log + pth_dir
+                test()
+                print('\n')
+                opt.f.write('\n')
         opt.f.close()
         
