@@ -8,6 +8,8 @@ from metrics import *
 import os
 import time
 from tqdm import tqdm
+from pydensecrf import densecrf
+from pydensecrf.utils import unary_from_labels, create_pairwise_bilateral, create_pairwise_gaussian
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 parser = argparse.ArgumentParser(description="PyTorch BasicIRSTD test")
 parser.add_argument("--model_names", default=['ACM', 'ALCNet','DNANet', 'ISNet', 'RDIAN', 'ISTDU-Net'], nargs='+',  
@@ -36,6 +38,34 @@ if opt.img_norm_cfg_mean != None and opt.img_norm_cfg_std != None:
   opt.img_norm_cfg['mean'] = opt.img_norm_cfg_mean
   opt.img_norm_cfg['std'] = opt.img_norm_cfg_std
 
+def crf_refine(img, pred_mask, iter_num=5):
+    """
+    使用CRF后处理来优化预测的分割掩码。
+    :param img: 原始图像，形状为(H, W, C)，其中C为通道数。
+    :param pred_mask: 预测的分割掩码，形状为(H, W)，值域为{0, 1}。
+    :param iter_num: CRF迭代次数。
+    :return: 经过CRF优化后的分割掩码。
+    """
+    _,_,h, w = pred_mask.shape
+    d = densecrf.DenseCRF2D(w, h, 2)  # 2表示两类：背景和前景
+    
+    U = unary_from_labels(pred_mask, 2, gt_prob=0.7, zero_unsure=False)
+    d.setUnaryEnergy(U)
+    
+    # 添加空间特征
+    feats = create_pairwise_gaussian(sdims=(3, 3), shape=img.shape[:2])
+    d.addPairwiseEnergy(feats, compat=3, kernel=densecrf.DIAG_KERNEL,
+                        normalization=densecrf.NORMALIZE_SYMMETRIC)
+    
+    # 添加颜色特征
+    feats = create_pairwise_bilateral(sdims=(80, 80), schan=(20, 20, 20),
+                                      img=img, chdim=2)
+    d.addPairwiseEnergy(feats, compat=10, kernel=densecrf.DIAG_KERNEL,
+                        normalization=densecrf.NORMALIZE_SYMMETRIC)
+    
+    Q = d.inference(iter_num)
+    refined_mask = np.argmax(Q, axis=0).reshape((h, w)).astype(np.uint8)
+    return refined_mask
 def downsample_if_needed(img, size_limit=512):
     """如果图像尺寸超过限制，进行下采样"""
     _,_,h, w = img.shape
@@ -115,8 +145,11 @@ def test():
             # 去除填充部分
             output = output[:,:,:size[0],:size[1]]
             pred = output  
+            '''crf'''
+            pred= crf_refine(img[0].permute(1, 2, 0).cpu().numpy() , pred.cpu())
+            '''crf'''
             gt_mask = gt_mask[:,:,:size[0],:size[1]]
-
+           
             
             eval_mIoU.update((pred>opt.threshold).cpu(), gt_mask)
             eval_PD_FA.update((pred[0,0,:,:]>opt.threshold).cpu(), gt_mask[0,0,:,:], size)   
