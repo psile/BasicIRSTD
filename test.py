@@ -144,7 +144,7 @@ def test():
 
             # 去除填充部分
             '''crf'''
-            output= crf_refine(img[0].permute(1, 2, 0).cpu().numpy() , output.cpu())
+            output= crf_refine(img[0].permute(1, 2, 0).cpu().numpy(), (output>opt.threshold).cpu())
             '''crf'''
             output = output[:,:,:size[0],:size[1]]
             pred = output  
