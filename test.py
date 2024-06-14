@@ -224,7 +224,7 @@ if __name__ == '__main__':
                 opt.train_dataset_name =dataset_name# pth_dir.split('/')[0]
                 # print(pth_dir)
                 for pth_dir in opt.pth_dirs:
-                    opt.f.write(opt.pth_dir)
+                    opt.f.write(pth_dir)
                 print(opt.test_dataset_name)
                 opt.f.write(opt.test_dataset_name + '\n')
                 # opt.pth_dir = opt.save_log + pth_dir
