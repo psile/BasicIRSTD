@@ -53,10 +53,10 @@ def downsample_if_needed(img, size_limit=512):
         return img, h,w  #,False  
 import pdb
 def test(): 
-    # test_set = TestSetLoader(opt.dataset_dir, opt.train_dataset_name, opt.test_dataset_name, opt.img_norm_cfg)
-    # test_loader = DataLoader(dataset=test_set, num_workers=1, batch_size=1, shuffle=False)
-    test_set = InferenceSetLoader(opt.dataset_dir, opt.train_dataset_name, opt.test_dataset_name, opt.img_norm_cfg)
+    test_set = TestSetLoader(opt.dataset_dir, opt.train_dataset_name, opt.test_dataset_name, opt.img_norm_cfg)
     test_loader = DataLoader(dataset=test_set, num_workers=1, batch_size=1, shuffle=False)
+    # test_set = InferenceSetLoader(opt.dataset_dir, opt.train_dataset_name, opt.test_dataset_name, opt.img_norm_cfg)
+    # test_loader = DataLoader(dataset=test_set, num_workers=1, batch_size=1, shuffle=False)
     
     net = Net(model_name=opt.model_name, mode='test').cuda()
     try:
@@ -71,7 +71,7 @@ def test():
    
     max_block_size = (512, 512)
     with torch.no_grad():
-        for idx_iter, (img, size, img_dir) in tqdm(enumerate(test_loader)):
+        for idx_iter, (img, gt_mask, size, img_dir) in enumerate(test_loader):
             img = Variable(img).cuda()
             _, _, height, width = img.size()
 
