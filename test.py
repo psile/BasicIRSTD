@@ -48,7 +48,7 @@ def crf_refine(img, pred_mask, iter_num=5):
     """
     h, w = pred_mask.shape
     d = densecrf.DenseCRF2D(w, h, 2)  # 2表示两类：背景和前景
-    pdb.set_trace()
+    #pdb.set_trace()
     U = unary_from_labels(pred_mask, 2, gt_prob=0.7, zero_unsure=False)
     d.setUnaryEnergy(U)
     
@@ -58,10 +58,9 @@ def crf_refine(img, pred_mask, iter_num=5):
                         normalization=densecrf.NORMALIZE_SYMMETRIC)
     
     # 添加颜色特征
-    feats = create_pairwise_bilateral(sdims=(80, 80), schan=(20, 20, 20),
-                                      img=img, chdim=2)
-    d.addPairwiseEnergy(feats, compat=10, kernel=densecrf.DIAG_KERNEL,
-                        normalization=densecrf.NORMALIZE_SYMMETRIC)
+    #pdb.set_trace()
+    feats = create_pairwise_bilateral(sdims=(80, 80), schan=(20, 20, 20),img=img, chdim=1)
+    d.addPairwiseEnergy(feats, compat=10, kernel=densecrf.DIAG_KERNEL,normalization=densecrf.NORMALIZE_SYMMETRIC)
     
     Q = d.inference(iter_num)
     refined_mask = np.argmax(Q, axis=0).reshape((h, w)).astype(np.uint8)
@@ -144,7 +143,7 @@ def test():
 
             # 去除填充部分
             '''crf'''
-            output= crf_refine(img[0].permute(1, 2, 0).cpu().numpy(), (output[0][0]>opt.threshold).cpu())
+            output= crf_refine(img[0].permute(1, 2, 0).cpu().numpy(), (output[0][0]>opt.threshold).cpu().numpy().astype(np.uint8))
             '''crf'''
             output = output[:,:,:size[0],:size[1]]
             pred = output  
