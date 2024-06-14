@@ -102,20 +102,20 @@ def test():
     with torch.no_grad():
         for idx_iter, (img, gt_mask, size, img_dir) in enumerate(test_loader):
             for pth_dir in opt.pth_dirs:
-                model_name=pth_dir.split("_")[0]
-                pdb.set_trace()
+                model_name=pth_dir.split("_")[0].split("/")[-1]
+                #pdb.set_trace()
                 if model_name=="AGPCNet":
                     net = Net(model_name="AGPCNet", mode='test').cuda()
                     try:
-                        net.load_state_dict(torch.load(opt.pth_dir)['state_dict'])
+                        net.load_state_dict(torch.load("log/"+pth_dir)['state_dict'])
                     except:
                         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-                        net.load_state_dict(torch.load(opt.pth_dir, map_location=device)['state_dict'])
+                        net.load_state_dict(torch.load(pth_dir, map_location=device)['state_dict'])
                     net.eval()
                 elif model_name=="DNANet":
                     net = Net(model_name="DNANet", mode='test').cuda()
                     try:
-                        net.load_state_dict(torch.load(opt.pth_dir)['state_dict'])
+                        net.load_state_dict(torch.load("log/"+opt.pth_dir)['state_dict'])
                     except:
                         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
                         net.load_state_dict(torch.load(opt.pth_dir, map_location=device)['state_dict'])
