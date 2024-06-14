@@ -14,7 +14,7 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 parser = argparse.ArgumentParser(description="PyTorch BasicIRSTD test")
 parser.add_argument("--model_names", default=['ACM', 'ALCNet','DNANet', 'ISNet', 'RDIAN', 'ISTDU-Net'], nargs='+',  
                     help="model_name: 'ACM', 'ALCNet', 'DNANet', 'ISNet', 'UIUNet', 'RDIAN', 'ISTDU-Net', 'U-Net', 'RISTDnet'")
-parser.add_argument("--pth_dirs", default=None, nargs='+',  help="checkpoint dir, default=None or ['NUDT-SIRST/ACM_400.pth.tar','NUAA-SIRST/ACM_400.pth.tar']")
+parser.add_argument("--pth_dirs", default=None, nargs='+', help="checkpoint dir, default=None or ['NUDT-SIRST/ACM_400.pth.tar','NUAA-SIRST/ACM_400.pth.tar']")
 parser.add_argument("--dataset_dir", default='./datasets', type=str, help="train_dataset_dir")
 parser.add_argument("--dataset_names", default=['NUAA-SIRST', 'NUDT-SIRST', 'IRSTD-1K'], nargs='+', 
                     help="dataset_name: 'NUAA-SIRST', 'NUDT-SIRST', 'IRSTD-1K', 'SIRST3', 'NUDT-SIRST-Sea'")
@@ -110,15 +110,15 @@ def test():
                         net.load_state_dict(torch.load("log/"+pth_dir)['state_dict'])
                     except:
                         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-                        net.load_state_dict(torch.load(pth_dir, map_location=device)['state_dict'])
+                        net.load_state_dict(torch.load("log/"+pth_dir, map_location=device)['state_dict'])
                     net.eval()
                 elif model_name=="DNANet":
                     net = Net(model_name="DNANet", mode='test').cuda()
                     try:
-                        net.load_state_dict(torch.load("log/"+opt.pth_dir)['state_dict'])
+                        net.load_state_dict(torch.load("log/"+pth_dir)['state_dict'])
                     except:
                         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-                        net.load_state_dict(torch.load(opt.pth_dir, map_location=device)['state_dict'])
+                        net.load_state_dict(torch.load("log/"+pth_dir, map_location=device)['state_dict'])
                     net.eval()
 
             
@@ -226,6 +226,7 @@ if __name__ == '__main__':
                 # print(pth_dir)
                 for pth_dir in opt.pth_dirs:
                     opt.f.write(pth_dir)
+                    print(pth_dir)
                 print(opt.test_dataset_name)
                 opt.f.write(opt.test_dataset_name + '\n')
                 # opt.pth_dir = opt.save_log + pth_dir
