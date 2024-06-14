@@ -53,7 +53,9 @@ def downsample_if_needed(img, size_limit=512):
         return img, h,w  #,False  
 import pdb
 def test(): 
-    test_set = TestSetLoader(opt.dataset_dir, opt.train_dataset_name, opt.test_dataset_name, opt.img_norm_cfg)
+    # test_set = TestSetLoader(opt.dataset_dir, opt.train_dataset_name, opt.test_dataset_name, opt.img_norm_cfg)
+    # test_loader = DataLoader(dataset=test_set, num_workers=1, batch_size=1, shuffle=False)
+    test_set = InferenceSetLoader(opt.dataset_dir, opt.train_dataset_name, opt.test_dataset_name, opt.img_norm_cfg)
     test_loader = DataLoader(dataset=test_set, num_workers=1, batch_size=1, shuffle=False)
     
     net = Net(model_name=opt.model_name, mode='test').cuda()
