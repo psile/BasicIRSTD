@@ -103,6 +103,7 @@ def test():
         for idx_iter, (img, gt_mask, size, img_dir) in enumerate(test_loader):
             for pth_dir in opt.pth_dirs:
                 model_name=pth_dir.split("_")[0]
+                pdb.set_trace()
                 if model_name=="AGPCNet":
                     net = Net(model_name="AGPCNet", mode='test').cuda()
                     try:
