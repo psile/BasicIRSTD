@@ -46,7 +46,7 @@ def crf_refine(img, pred_mask, iter_num=5):
     :param iter_num: CRF迭代次数。
     :return: 经过CRF优化后的分割掩码。
     """
-    _,_,h, w = pred_mask.shape
+    h, w = pred_mask.shape
     d = densecrf.DenseCRF2D(w, h, 2)  # 2表示两类：背景和前景
     
     U = unary_from_labels(pred_mask, 2, gt_prob=0.7, zero_unsure=False)
@@ -144,7 +144,7 @@ def test():
 
             # 去除填充部分
             '''crf'''
-            output= crf_refine(img[0].permute(1, 2, 0).cpu().numpy(), (output>opt.threshold).cpu())
+            output= crf_refine(img[0].permute(1, 2, 0).cpu().numpy(), (output[0][0]>opt.threshold).cpu())
             '''crf'''
             output = output[:,:,:size[0],:size[1]]
             pred = output  
