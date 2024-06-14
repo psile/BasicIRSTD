@@ -143,11 +143,12 @@ def test():
                     output[:, :, block_y:block_y + block_height, block_x:block_x + block_width] = pred_block
 
             # 去除填充部分
+            '''crf'''
+            output= crf_refine(img[0].permute(1, 2, 0).cpu().numpy() , output.cpu())
+            '''crf'''
             output = output[:,:,:size[0],:size[1]]
             pred = output  
-            '''crf'''
-            pred= crf_refine(img[0].permute(1, 2, 0).cpu().numpy() , pred.cpu())
-            '''crf'''
+          
             gt_mask = gt_mask[:,:,:size[0],:size[1]]
            
             
