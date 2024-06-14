@@ -48,7 +48,7 @@ def crf_refine(img, pred_mask, iter_num=5):
     """
     h, w = pred_mask.shape
     d = densecrf.DenseCRF2D(w, h, 2)  # 2表示两类：背景和前景
-    
+    pdb.set_trace()
     U = unary_from_labels(pred_mask, 2, gt_prob=0.7, zero_unsure=False)
     d.setUnaryEnergy(U)
     
