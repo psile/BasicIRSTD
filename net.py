@@ -37,7 +37,7 @@ class Net(nn.Module):
         elif model_name =='SANet':
             self.model=SANet(0.33,0.5)
         elif model_name=='AGPCNet':
-            self.model=get_segmentation_model('agpcnet_1')
+            self.model=get_segmentation_model('agpcnet_2')
             
         elif model_name == 'ALCNet':
             self.model = ALCNet()
