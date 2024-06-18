@@ -163,8 +163,9 @@ def test():
                             continue
 
                         block = img[:, :, block_y:block_y + block_height, block_x:block_x + block_width]
-                        
-
+                        '''repeat'''
+                        block=block.repeat(1,3,1,1)
+                        '''end'''
                         try:
                             pred_block = net.forward(block)
                         except RuntimeError as e:
