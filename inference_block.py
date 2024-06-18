@@ -88,7 +88,7 @@ def test():
 
                     block = img[:, :, block_y:block_y + block_height, block_x:block_x + block_width]
                     
-
+                    block=block.permute(1,3,1,1)
                     try:
                         pred_block = net.forward(block)
                     except RuntimeError as e:
