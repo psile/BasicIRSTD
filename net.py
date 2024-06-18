@@ -14,6 +14,7 @@ from model.SA_nets.SANet import SANet
 from model.UCF.UCF import UCFNet
 from model.AGPCNet import get_segmentation_model
 from model.DNANet import DNANet
+from model.nets.Network import Network
 class Net(nn.Module):
     def __init__(self, model_name, mode):
         super(Net, self).__init__()
@@ -32,6 +33,8 @@ class Net(nn.Module):
                 self.model = DNAnet_BY(mode='test')  
         elif model_name == 'ACM':
             self.model = ACM()
+        elif model_name== 'SSTNet':
+            self.model=Network(num_classes=1, num_frame=5)#num_classes=1, num_frame=5
         elif model_name=='UCF':
             self.model=UCFNet(theta_r=0, theta_0=0.7, theta_1=0, theta_2=0.7, n_blocks=7)
         elif model_name =='SANet':
