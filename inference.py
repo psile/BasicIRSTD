@@ -76,6 +76,14 @@ def test():
                         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
                         net.load_state_dict(torch.load("log/"+pth_dir, map_location=device)['state_dict'])
                     net.eval()
+                elif model_name=="SSTNet":
+                    net = Net(model_name="SSTNet", mode='test').cuda()
+                    try:
+                        net.load_state_dict(torch.load("log/"+pth_dir)['state_dict'])
+                    except:
+                        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+                        net.load_state_dict(torch.load("log/"+pth_dir, map_location=device)['state_dict'])
+                    net.eval()
 
             
                 img = Variable(img).cuda()
@@ -111,7 +119,9 @@ def test():
                             continue
 
                         block = img[:, :, block_y:block_y + block_height, block_x:block_x + block_width]
-                        
+                        '''repeat'''
+                        block=block.repeat(1,3,1,1)
+                        '''end'''
 
                         try:
                             pred_block = net.forward(block)
