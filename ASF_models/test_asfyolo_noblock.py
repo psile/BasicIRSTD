@@ -80,7 +80,7 @@ def test():
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
         # img = Variable(img).cuda()
-        pred, proto = model(im, augment=False, visualize=False)[:2]
+        pred, proto = model(im.repeat(1,3,1,1), augment=False, visualize=False)[:2]
         pred = non_max_suppression(pred, conf_thres=0.25, iou_thres=0.45, classes=None, agnostic=False, max_det=1000, nm=32)
         for i, det in enumerate(pred):
             im0=im0s.copy()
