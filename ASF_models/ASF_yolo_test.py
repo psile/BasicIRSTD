@@ -253,6 +253,7 @@ def run(
 
             # Stream results
             im0 = annotator.result()
+            im0 =im0[:,:,0]>0.2
             #pdb.set_trace()
             if view_img:
                 if platform.system() == 'Linux' and p not in windows:
