@@ -298,7 +298,7 @@ def run(
 
 def parse_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', nargs='+', type=str, default='/home/pengshuang/detect/ASF_YOLO/runs_2/train-seg/improve25/weights/best.pt', help='model path(s)')
+    parser.add_argument('--weights', nargs='+', type=str, default='best.pt', help='model path(s)')
     parser.add_argument('--source', type=str, default='/home/public/PRCV2024/PRCV_yolo/images/train', help='file/dir/URL/glob/screen/0(webcam)')#ROOT / 'datasets/images/val'
     parser.add_argument('--data', type=str, default='PRCV.yaml', help='(optional) dataset.yaml path')
     parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[640], help='inference size h,w')
