@@ -33,6 +33,7 @@ import sys
 from pathlib import Path
 import time
 import torch
+from torchvision import transforms
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLOv5 root directory
@@ -252,8 +253,12 @@ def run(
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
             # Stream results
+            # im0 = annotator.result()
+            # im0 =im0[:,:,0]>0.2
             im0 = annotator.result()
-            im0 =im0[:,:,0]>0.2
+            im0=torch.tensor(im0)
+            im0=transforms.ToPILImage()(((im0[:,:,0]>0.2).float()).cpu())
+            # im0 = transforms.ToPILImage()(im0)
             #pdb.set_trace()
             if view_img:
                 if platform.system() == 'Linux' and p not in windows:
@@ -268,7 +273,8 @@ def run(
             if save_img:
                 if dataset.mode == 'image':
                     #pdb.set_trace()
-                    cv2.imwrite(save_path, im0)
+                    im0.save(save_path)
+                    #cv2.imwrite(save_path, im0)
                 else:  # 'video' or 'stream'
                     if vid_path[i] != save_path:  # new video
                         vid_path[i] = save_path
