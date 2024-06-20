@@ -233,7 +233,7 @@ def run(
                 #pdb.set_trace()
                 #im_numpy=im[0].cpu().numpy().transpose(1,2,0)
 
-                #annotator.masks(masks,colors=[(255,255,255)] , im_gpu=plot_img) #[colors(x, True) for x in det[:, 5]]
+                annotator.masks(masks,colors=[(255,255,255)] , im_gpu=plot_img) #[colors(x, True) for x in det[:, 5]]
 
                 # Write results
                 for j, (*xyxy, conf, cls) in enumerate(reversed(det[:, :6])):
@@ -247,7 +247,7 @@ def run(
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                         #pdb.set_trace()
-                        annotator.box_label(xyxy, label, color=colors(c, True))
+                        #annotator.box_label(xyxy, label, color=colors(c, True))
                         # annotator.draw.polygon(segments[j], outline=colors(c, True), width=3)
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
