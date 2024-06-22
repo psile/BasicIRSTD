@@ -140,7 +140,9 @@ class LightWeightNetwork1(nn.Module):
         return fuse_layer
 
     def forward(self,  x):
-
+         _, C, height, width = x.size()
+        if C>1:
+            x=x.mean(dim=1, keepdim=True)
         _, _, hei, wid = x.shape
 
         x = self.stem(x)      # (4,16,120,120)
