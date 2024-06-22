@@ -58,6 +58,7 @@ def test():
     with torch.no_grad():
         for idx_iter, (img, size, img_dir) in tqdm(enumerate(test_loader)):
             img = Variable(img).cuda()
+            img=img.mean(dim=1, keepdim=True)
             _, _, height, width = img.size()
 
             # 计算需要填充的尺寸
