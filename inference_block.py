@@ -65,8 +65,9 @@ def test():
             pad_width = (max_block_size[1] - width % max_block_size[1]) % max_block_size[1] # 512 - 1088 % 512 = 448
           
             # 对图像进行填充
+            img=F.pad(img, (0, 0, pad_width, pad_height), fill=0, padding_mode='constant')
             # img = F.pad(img, (0, 0, pad_width, pad_height), mode='constant', constant_values=0)#padding_mode
-            img=F.pad(img, (0, pad_width,0, pad_height),mode='constant',value=0)
+            #img=F.pad(img, (0, pad_width,0, pad_height),mode='constant',value=0)
             _, _, padded_height, padded_width = img.size()
 
             num_blocks_height = (padded_height + max_block_size[0] - 1) // max_block_size[0]
@@ -88,7 +89,7 @@ def test():
 
                     block = img[:, :, block_y:block_y + block_height, block_x:block_x + block_width]
                     
-                    block=block.repeat(1,3,1,1)
+                    #block=block.repeat(1,3,1,1)
                     try:
                         pred_block = net.forward(block)
                     except RuntimeError as e:
